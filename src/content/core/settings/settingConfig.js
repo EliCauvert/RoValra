@@ -76,7 +76,7 @@ export const SETTINGS_CONFIG = {
                             'Post processing allows for advanced effects such as bloom and ambient occlusion, but requires a powerful device.',
                         type: 'checkbox',
                         default: false,
-                    }
+                    },
                 },
             },
             EnableRobuxAfterPurchase: {
@@ -627,6 +627,14 @@ export const SETTINGS_CONFIG = {
                 default: true,
                 contributors: ['8345351117', '447170745'],
             },
+            viewBadgesEnabled: {
+                label: 'View All Badges',
+                description: [
+                    'Adds a button to a profile or community that shows every badge across all of their experiences, including hidden ones.',
+                ],
+                type: 'checkbox',
+                default: true,
+            },
             avatarDownloadEnabled: {
                 label: 'Download Avatar',
                 description: [
@@ -858,7 +866,7 @@ export const SETTINGS_CONFIG = {
                             'Post processing allows for advanced effects such as bloom and ambient occlusion, but requires a powerful device.',
                         type: 'checkbox',
                         default: false,
-                    }
+                    },
                 },
             },
             groupFiltersEnabled: {

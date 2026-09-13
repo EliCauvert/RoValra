@@ -115,6 +115,7 @@ import { init as initTradeProof } from './features/trading/tradeProof.js';
 import { init as initBlockUser } from './features/trading/blockUser.js';
 // group
 import { init as initHiddenGroupGames } from './features/groups/hiddenGroupGames.js';
+import { init as initViewGroupBadges } from './features/groups/viewGroupBadges.js';
 import { init as initAntiBots } from './features/groups/Antibots.js';
 import { init as initPendingRobux } from './features/groups/pendingRobux.js';
 import { init as initDraggableGroups } from './features/groups/draggableGroups.js';
@@ -133,6 +134,7 @@ import { init as initOutfits } from './features/profile/outfits.js';
 import { init as initPrivateServers } from './features/profile/privateserver.js';
 import { init as initRovalraBadges } from './features/profile/header/RoValraBadges.js';
 import { init as initUserGames } from './features/profile/hiddengames.js';
+import { init as initViewBadges } from './features/profile/viewBadges.js';
 import { init as initGroupRole } from './features/profile/grouprole.js';
 import { init as initPrivateServerControls } from './features/games/privateserver.js';
 import { init as initPlusPrivateServerTooltip } from './features/games/plusPrivateServerTooltip.js';
@@ -313,6 +315,7 @@ const featureRoutes = [
         paths: ['/communities/'],
         features: [
             initHiddenGroupGames,
+            initViewGroupBadges,
             initAntiBots,
             initPendingRobux,
             initDraggableGroups,
@@ -404,6 +407,7 @@ const featureRoutes = [
             initOutfits,
             initPrivateServers,
             initUserGames,
+            initViewBadges,
             initTrustedFriends,
             initProfileRender,
             initProfileTestTab,
