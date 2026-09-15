@@ -430,6 +430,17 @@ export const SETTINGS_CONFIG = {
                 type: 'checkbox',
                 default: true,
                 contributors: [476449201],
+                childSettings: {
+                    badgePlacementEnabled: {
+                        label: 'Badge Placement',
+                        description: [
+                            "Shows an approximate placement (1st, 2nd, 145th, etc) for badges you've earned.",
+                            "This is an estimate based on the badge's total award count the first time RoValra saw you had it, not an exact rank Roblox provides - only badges earned after this feature is enabled can be estimated.",
+                        ],
+                        type: 'checkbox',
+                        default: true,
+                    },
+                },
             },
             updateHistoryEnabled: {
                 label: 'Update History',

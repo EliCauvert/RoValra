@@ -339,7 +339,8 @@
         "for": "for"
     },
     "badgeEarnedDate": {
-        "unlocked": "Unlocked"
+        "unlocked": "Unlocked",
+        "placement": "Placement"
     },
     "lastEquipped": {
         "label": "Last Equipped"
@@ -579,7 +580,7 @@
             "tooltip": "Privacy Settings"
         },
         "noTogglesEnabled": "No toggles are enabled! Go to RoValra Settings to enable privacy setting toggles.",
-        "dropdowns" : {
+        "dropdowns": {
             "shared": {
                 "allUsers": "Everyone",
                 "friendsFollowingFollowers": "Friends, Following, and Followers",
@@ -1428,7 +1429,7 @@
         "ccuTooltip": "Current players across public experiences created by this user.",
         "visitsTooltip": "Lifetime visits across public experiences created by this user.",
         "membersTooltip": "Members across communities owned by this user."
-        },
+    },
     "plus": {
         "stats": {
             "robux": "You've saved {{robux}} when you had Plus",

@@ -346,9 +346,9 @@ const contextMenuClickListener = async (info, tab) => {
             chrome.tabs.sendMessage(tab.id, {
                 action: 'view-ids',
                 data: {
-                    targetId: id
-                }
-            })
+                    targetId: id,
+                },
+            });
         }
     } else if (info.menuItemId.startsWith('rovalra-copy-') && tab?.id) {
         const textToCopy = info.menuItemId.replace('rovalra-copy-', '');
@@ -477,9 +477,16 @@ async function wearOutfit(outfitData) {
         }
 
         const storedDetails = await new Promise((resolve) => {
-            chrome.storage.local.get('rovalra_avatar_rotator_details', (data) => {
-                resolve(data.rovalra_avatar_rotator_details?.[String(outfitId)] || null);
-            });
+            chrome.storage.local.get(
+                'rovalra_avatar_rotator_details',
+                (data) => {
+                    resolve(
+                        data.rovalra_avatar_rotator_details?.[
+                            String(outfitId)
+                        ] || null,
+                    );
+                },
+            );
         });
         let details = storedDetails;
         if (!details) {
@@ -738,6 +745,7 @@ const BADGES_STORAGE_VERSION = 2;
 const BADGE_REFRESH_DURATION = 5 * 60 * 1000;
 const BADGE_FULL_REFRESH_DURATION = 30 * 60 * 1000;
 const BADGE_REQUEST_DELAY = 150;
+const BADGE_PLACEMENT_DATA_KEY = 'rovalra_badge_placements_v1';
 const AVATAR_INVENTORY_DATA_KEY = 'rovalra_avatar_inventory_v1';
 const AVATAR_INVENTORY_REFRESH_DURATION = 60 * 1000;
 const AVATAR_INVENTORY_REQUEST_DELAY = 150;
@@ -1466,6 +1474,38 @@ function mergeBadgesIntoAggregated(existingAggregated, rawBadges) {
     return updated;
 }
 
+// Roblox has no API for a badge's true global award rank, so this records an
+// approximation: the badge's awardedCount at the moment we first see the user
+// has it. Only meaningful for badges earned after tracking starts, so this is
+// skipped entirely until a user has completed one full scan (`canRecord`) -
+// otherwise every pre-existing badge would get a bogus "placement" equal to
+// today's total instead of the count from whenever it was actually earned.
+function mergePlacementsIntoAggregated(
+    existingPlacements,
+    rawBadges,
+    canRecord,
+) {
+    const updated = existingPlacements || { badges: {} };
+    updated.badges = updated.badges || {};
+
+    if (canRecord) {
+        rawBadges.forEach((badge) => {
+            const badgeId = badge?.id ? String(badge.id) : null;
+            if (!badgeId || updated.badges[badgeId]) return;
+
+            const awardedCount = badge?.statistics?.awardedCount;
+            if (!Number.isFinite(awardedCount)) return;
+
+            updated.badges[badgeId] = {
+                awardedCount,
+                recordedAt: Date.now(),
+            };
+        });
+    }
+
+    return updated;
+}
+
 async function handleBackgroundBadgeScan(userId, options = {}) {
     userId = String(userId);
     const forceFullScan = !!options.forceFullScan;
@@ -1493,6 +1533,7 @@ async function handleBackgroundBadgeScan(userId, options = {}) {
                 await runBadgeLoop(userId, userData, false, {
                     resetCursor: true,
                     timestampKey: 'lastFullBadgeCheck',
+                    canRecordPlacements: true,
                 });
                 return;
             }
@@ -1501,7 +1542,9 @@ async function handleBackgroundBadgeScan(userId, options = {}) {
                 userData.lastIncrementalCheck || userData.lastFullScan || 0;
             if (now - lastCheck < BADGE_REFRESH_DURATION) return;
 
-            await runBadgeLoop(userId, userData, true);
+            await runBadgeLoop(userId, userData, true, {
+                canRecordPlacements: true,
+            });
         } else {
             await runBadgeLoop(
                 userId,
@@ -1515,6 +1558,7 @@ async function handleBackgroundBadgeScan(userId, options = {}) {
                       }
                     : userData,
                 false,
+                { canRecordPlacements: false },
             );
         }
     } finally {
@@ -1538,6 +1582,12 @@ async function runBadgeLoop(userId, existingData, isIncremental, options = {}) {
         places: existingData.places || {},
         latestBadgeIds: existingData.latestBadgeIds || [],
     };
+
+    const placementStorage = await chrome.storage.local.get([
+        BADGE_PLACEMENT_DATA_KEY,
+    ]);
+    const allPlacementData = placementStorage[BADGE_PLACEMENT_DATA_KEY] || {};
+    let currentPlacements = allPlacementData[userId] || { badges: {} };
 
     while (true) {
         const data = await fetchBadgesPage(userId, cursor);
@@ -1571,6 +1621,11 @@ async function runBadgeLoop(userId, existingData, isIncremental, options = {}) {
         currentAggregated = mergeBadgesIntoAggregated(
             currentAggregated,
             newBatch,
+        );
+        currentPlacements = mergePlacementsIntoAggregated(
+            currentPlacements,
+            newBatch,
+            options.canRecordPlacements === true,
         );
 
         if (pagesChecked === 0) {
@@ -1608,13 +1663,23 @@ async function runBadgeLoop(userId, existingData, isIncremental, options = {}) {
         };
         await chrome.storage.local.set({ [BADGES_DATA_KEY]: allData });
 
+        const placementStorageNow = await chrome.storage.local.get([
+            BADGE_PLACEMENT_DATA_KEY,
+        ]);
+        const allPlacementDataNow =
+            placementStorageNow[BADGE_PLACEMENT_DATA_KEY] || {};
+        allPlacementDataNow[userId] = currentPlacements;
+        await chrome.storage.local.set({
+            [BADGE_PLACEMENT_DATA_KEY]: allPlacementDataNow,
+        });
+
         if (!cursor || foundMatch || (isIncremental && pagesChecked >= 10))
             break;
         await new Promise((r) => setTimeout(r, BADGE_REQUEST_DELAY));
     }
 
     if (isIncremental && !foundMatch && pagesChecked >= 10) {
-        await runBadgeLoop(userId, currentAggregated, false);
+        await runBadgeLoop(userId, currentAggregated, false, options);
     }
 }
 
@@ -2399,7 +2464,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                                 ) {
                                     request.ids.forEach((item) => {
                                         if (item.type === 'Universe') {
-                                            if (settings.copyUniverseIdEnabled) {
+                                            if (
+                                                settings.copyUniverseIdEnabled
+                                            ) {
                                                 chrome.contextMenus.create({
                                                     id: `rovalra-copy-universe-${item.id}`,
                                                     title: item.title,
@@ -2441,8 +2508,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                                         ],
                                     });
                                 }
-                        });
-                    })
+                            },
+                        );
+                    });
                 }
             }
             return false;
