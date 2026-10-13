@@ -388,13 +388,13 @@ const featureRoutes = [
             initCatalogExplorer,
             initUnderReviewPill,
             initGameStatTimestamps,
-            initFreeBadgeQuota,
         ],
     },
     // private games and game pages
     {
         paths: ['/games/', '/private-games'],
         features: [
+            initFreeBadgeQuota,
             initDevProductLoader,
             initSubplaces,
             initTotalSpentGames,
