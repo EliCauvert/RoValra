@@ -6,7 +6,7 @@ import { createToggle } from '../../core/ui/general/toggle.js';
 import { createShimmerGrid } from '../../core/ui/shimmer.js';
 import { fetchThumbnails as fetchThumbnailsBatch } from '../../core/thumbnail/thumbnails.js';
 import { callRobloxApiJson } from '../../core/api.js';
-import DOMPurify from 'dompurify';
+import DOMPurify from '../../core/packages/dompurify.js';
 import { t, ts } from '../../core/locale/i18n.js';
 import { createGameCard } from '../../core/ui/games/gameCard.js';
 import { addSortStatToCard } from '../../core/ui/games/sortStat.js';
@@ -254,28 +254,10 @@ class HiddenGamesManager {
         );
 
         const createFilterGroup = (label, input) =>
-            el(
-                'div',
-                '',
-                {
-                    style: {
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '4px',
-                    },
-                },
-                [
-                    el('label', '', {
-                        textContent: label,
-                        style: {
-                            fontSize: '12px',
-                            fontWeight: '500',
-                            color: 'var(--rovalra-secondary-text-color)',
-                        },
-                    }),
-                    input,
-                ],
-            );
+            el('div', 'rovalra-filter-section', {}, [
+                el('label', '', { textContent: label }),
+                input,
+            ]);
 
         const body = el(
             'div',
@@ -296,21 +278,11 @@ class HiddenGamesManager {
                         showAllToggleWrapper,
                     ),
                 ]),
-                el('div', 'rovalra-hidden-games-list', {
-                    style: {
-                        display: 'grid',
-                        gridTemplateColumns:
-                            'repeat(auto-fill, minmax(160px, 1fr))',
-                        gap: '10px',
-                        padding: '24px',
-                    },
-                }),
+                el('div', 'rovalra-hidden-games-list'),
                 el(
                     'div',
                     'rovalra-load-more-container rovalra-hidden-games-list',
-                    {
-                        style: { padding: '0', textAlign: 'center' },
-                    },
+                    { style: { paddingTop: '0' } },
                 ),
             ],
         );
@@ -348,7 +320,11 @@ class HiddenGamesManager {
                 ]);
 
                 const publicIds = new Set(publicGames.map((g) => g.id));
-                this.ownedGames = allGames;
+                const allIds = new Set(allGames.map((g) => g.id));
+                this.ownedGames = [
+                    ...allGames,
+                    ...publicGames.filter((g) => !allIds.has(g.id)),
+                ];
                 this.hiddenGames = allGames.filter((g) => !publicIds.has(g.id));
 
                 if (this.ownedGames.length === 0) {
