@@ -48,12 +48,14 @@ import { init as initKidsThemeText } from './features/sitewide/kidsThemeText.js'
 import { init as initCustomRobloxBanner } from './features/sitewide/customRobloxBanner.js';
 import { init as initSidebarCollapse } from './features/sitewide/sidebarCollapse.js';
 import { init as initSidebarLayout } from './features/sitewide/sidebarLayout.js';
+import { init as initHideFriendRequestCount } from './features/sitewide/hideFriendRequestCount.js';
 import { init as initTopbarLayout } from './features/sitewide/topbarLayout.js';
 import { init as initFriendUsernames } from './features/sitewide/friendUsernames.js';
 import { init as initSidebarVerifiedBadge } from './features/sitewide/sidebarVerifiedBadge.js';
 import { init as initWideTilePlayerCounts } from './features/sitewide/wideTilePlayerCounts.js';
 import { init as initPaymentMethodBonusItems } from './features/paymentmethods/bonusItems.js';
 import { init as initBackgroundImage } from './features/sitewide/backgroundImage.js';
+import { init as initThemeVariables } from './features/sitewide/themeVariables.js';
 import { init as initFreeRobloxPlusThemes } from './features/sitewide/freeRobloxPlusThemes.js';
 import { init as initVoiceBanIndicator } from './features/sitewide/voiceBanIndicator.js';
 import { initNotificationCenter as initReceiveRobuxNotificationCenter } from './features/plus/sendRobux.js';
@@ -139,6 +141,7 @@ import { init as initBulkLeaveGroups } from './features/groups/bulkLeave.js';
 import { init as initPlaceVisits } from './features/groups/placevisits.js';
 import { init as initGroupCreateDate } from './features/groups/createDate.js';
 import { init as initGroupPendingFunds } from './features/groups/groupPendingFunds.js';
+import { init as initGroupFundsPill } from './features/groups/groupFundsPill.js';
 // Plus
 import { init as initRobloxPlusStats } from './features/plus/stats.js';
 import { init as initRobloxPlusTransferLimits } from './features/plus/transferLimits.js';
@@ -292,6 +295,7 @@ const featureRoutes = [
             initCustomRobloxBanner,
             initSidebarCollapse,
             initSidebarLayout,
+            initHideFriendRequestCount,
             initVoiceBanIndicator,
             initTopbarLayout,
             initFriendUsernames,
@@ -300,6 +304,7 @@ const featureRoutes = [
             initBackgroundImage,
             initFreeRobloxPlusThemes,
             initCustomThemeEditor,
+            initThemeVariables,
             initReceiveRobuxNotificationCenter,
             initGameOutfits,
             initSitewideAppThemesOnProfiles,
@@ -357,6 +362,7 @@ const featureRoutes = [
             initPlaceVisits,
             initGroupCreateDate,
             initGroupPendingFunds,
+            initGroupFundsPill,
             initItemRender,
         ],
     },
