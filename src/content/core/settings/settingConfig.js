@@ -558,7 +558,8 @@ export const SETTINGS_CONFIG = {
                 label: 'Hidden Badges',
                 description: [
                     'Adds a Hidden Badges tab to experience pages.',
-                    'This only shows hidden badges of a game that you obtained.',
+                    'This will show all badges normally hidden on the games page.',
+                    "Hidden badges information powered by [Rolimon's](https://www.rolimons.com/)",
                 ],
                 type: 'checkbox',
                 default: true,
@@ -2650,8 +2651,16 @@ export const SETTINGS_CONFIG = {
                     "This feature sends server IDs and place IDs to RoValra's API when you browse the site.",
                     'This data is used for the server uptime and the Total Servers features.',
                     'Leaving this feature on will help improve the Server Uptime and Total Servers features.',
-                    '**No personal data is sent, not even user ID or username—only the server IDs and the place ID.**',
-                    '**No data that could link the server IDs or place IDs to you is sent or logged.**',
+                    'This can use extra bandwidth compared to other features, if you are in limited bandwidth it is recommended to turn this off.',
+                ],
+                type: 'checkbox',
+                default: true,
+            },
+            ServerdataLegacyEnabled: {
+                label: 'Use Legacy Server Data Submission',
+                description: [
+                    'Sends only server IDs and place IDs.',
+                    'Pretty much nerdy experimental development stuff.',
                 ],
                 type: 'checkbox',
                 default: true,
