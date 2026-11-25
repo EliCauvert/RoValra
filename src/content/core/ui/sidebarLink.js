@@ -7,12 +7,14 @@ const SIDEBAR_COMMUNITY_SELECTOR = [
     '#left-navigation-container a[href*="/communities"]',
     '#navigation a[href*="/communities"]',
     '.navigation a[href*="/communities"]',
+    '.left-nav nav a[href*="/communities"]',
 ].join(', ');
 const LINK_CLASS =
     'content-emphasis text-title-large flex items-center gap-small padding-left-xsmall padding-right-xxsmall radius-medium relative clip group/interactable focus-visible:outline-focus disabled:outline-none';
 
 let lastObservedPath = window.location.pathname;
 let locationWatcherStarted = false;
+const pinnedLinkIds = new Set();
 
 function normalizePath(href) {
     if (!href) return '';
@@ -105,6 +107,42 @@ function setLinkLabel(link, label) {
     link.appendChild(span);
 }
 
+function createBadge(text) {
+    const host = document.createElement('span');
+    host.className =
+        'rovalra-sidebar-badge fill basis-auto padding-x-small flex justify-end items-center';
+
+    const pill = document.createElement('div');
+    pill.className =
+        'foundation-web-badge flex items-center select-none gap-[var(--size-150)] radius-circle height-600 width-[fit-content] padding-x-small bg-system-contrast content-inverse-emphasis stroke-none';
+
+    const label = document.createElement('span');
+    label.className =
+        'text-no-wrap text-truncate-split text-label-small padding-y-xsmall padding-x-xxsmall content-inverse-emphasis';
+    label.textContent = text;
+
+    pill.appendChild(label);
+    host.appendChild(pill);
+    return host;
+}
+
+function syncBadge(link, text) {
+    const existing = link.querySelector(':scope > .rovalra-sidebar-badge');
+
+    if (!text) {
+        existing?.remove();
+        return;
+    }
+
+    if (existing) {
+        const label = existing.querySelector('.text-label-small');
+        if (label && label.textContent !== text) label.textContent = text;
+        return;
+    }
+
+    link.appendChild(createBadge(text));
+}
+
 function clearInlineActiveStyles(item) {
     [item, ...item.querySelectorAll('*')].forEach((element) => {
         element.style.removeProperty('background');
@@ -126,6 +164,16 @@ function startLocationWatcher() {
     }, 1000);
 }
 
+export function getCommunityInsertionAnchor(communityItem) {
+    let anchor = communityItem;
+    while (
+        pinnedLinkIds.has(anchor.nextElementSibling?.dataset.rovalraSidebarItem)
+    ) {
+        anchor = anchor.nextElementSibling;
+    }
+    return anchor;
+}
+
 export function initSidebarLink({
     id,
     path,
@@ -133,11 +181,17 @@ export function initSidebarLink({
     createIcon,
     settingKeys,
     legacySelectors = [],
+    openInNewTab = false,
+    pinBelowCommunities = false,
+    badge = null,
 }) {
+    if (pinBelowCommunities) pinnedLinkIds.add(id);
+
     const itemSelector = `[data-rovalra-sidebar-item="${id}"]`;
     const linkSelector = `a[data-rovalra-sidebar-link="${id}"]`;
     const settingValues = new Map();
     let enabled = false;
+    let badgeText = null;
 
     const getLabel = () => (typeof label === 'function' ? label() : label);
 
@@ -150,6 +204,7 @@ export function initSidebarLink({
         item.dataset.rovalraSidebarItem = id;
         link.dataset.rovalraSidebarLink = id;
         link.className = LINK_CLASS;
+        syncBadge(link, badgeText);
 
         if (matchesRoute(window.location.pathname, path)) {
             link.setAttribute('aria-current', 'page');
@@ -200,6 +255,10 @@ export function initSidebarLink({
 
         setLinkLabel(link, getLabel());
         link.setAttribute('href', path);
+        if (openInNewTab) {
+            link.setAttribute('target', '_blank');
+            link.setAttribute('rel', 'noopener noreferrer');
+        }
         link.dataset.rovalraSidebarLink = id;
         item.dataset.rovalraSidebarItem = id;
 
@@ -228,7 +287,10 @@ export function initSidebarLink({
         const newItem = createItem(sidebar, communityLink);
         if (!communityItem || !newItem) return;
 
-        communityItem.insertAdjacentElement('afterend', newItem);
+        const anchor = pinBelowCommunities
+            ? communityItem
+            : getCommunityInsertionAnchor(communityItem);
+        anchor.insertAdjacentElement('afterend', newItem);
         updateActiveState(sidebar);
         attachStateSync(sidebar);
     };
@@ -246,6 +308,21 @@ export function initSidebarLink({
                 .forEach((item) => item.remove());
         }
     };
+
+    const refreshBadge = () => {
+        if (!badge) return;
+
+        Promise.resolve(badge())
+            .then((text) => {
+                badgeText = text || null;
+                document
+                    .querySelectorAll(linkSelector)
+                    .forEach((link) => syncBadge(link, badgeText));
+            })
+            .catch(() => {});
+    };
+
+    refreshBadge();
 
     (async () => {
         startLocationWatcher();
@@ -275,4 +352,6 @@ export function initSidebarLink({
             error,
         );
     });
+
+    return { refreshBadge };
 }

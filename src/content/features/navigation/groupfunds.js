@@ -13,6 +13,7 @@ import {
 import { USER_CURRENCY_CHANGED_EVENT } from '../../core/utils/trackers/currency.js';
 import { getAuthenticatedUserId } from '../../core/user.js';
 import { getUserName } from '../../core/apis/users.js';
+import { Icon } from '../../core/ui/buildericon.js';
 
 const CACHE_KEY = 'rovalra-group-funds-data';
 const NAVBAR_SELECTORS = '#nav-robux-amount, #nav-robux-balance';
@@ -132,8 +133,30 @@ async function fetchAndCacheGroupData(groupId) {
     return request;
 }
 
+function createRobuxGlyph() {
+    const icon = Icon({
+        icon: 'robux',
+        filled: false,
+        size: 'small',
+        classes: 'rovalra-robux-glyph',
+    });
+    icon.setAttribute('aria-hidden', 'true');
+    icon.style.verticalAlign = 'text-bottom';
+    return icon;
+}
+
+function isCreditNavbarElement(element) {
+    return !!element.closest('#navbar-robux .nav-credit');
+}
+
+function getNavbarAmountElements() {
+    return [...document.querySelectorAll(NAVBAR_SELECTORS)].filter(
+        (element) => !isCreditNavbarElement(element),
+    );
+}
+
 function clearNavbarOverride() {
-    document.querySelectorAll(NAVBAR_SELECTORS).forEach((element) => {
+    getNavbarAmountElements().forEach((element) => {
         delete element.dataset.rovalraNavbarRobuxAmount;
         delete element.dataset.rovalraGroupFundsOverride;
     });
@@ -357,9 +380,7 @@ function upsertFoundationPersonalRow(container, data, personalBalance) {
 
     const amountSpan = document.createElement('span');
     amountSpan.className = 'shrink-0 text-no-wrap content-emphasis';
-    const rbxIcon = document.createElement('span');
-    rbxIcon.className = 'icon-robux-16x16';
-    rbxIcon.style.verticalAlign = 'text-bottom';
+    const rbxIcon = createRobuxGlyph();
     rbxIcon.style.marginRight = '3px';
 
     const amountValue = document.createElement('span');
@@ -427,9 +448,7 @@ function upsertPersonalRow(section, divider, data, isFoundation = false) {
     nameSpan.textContent = data.username || 'User';
 
     const amountSpan = document.createElement('span');
-    const rbxIcon = document.createElement('span');
-    rbxIcon.className = 'icon-robux-16x16';
-    rbxIcon.style.verticalAlign = 'text-bottom';
+    const rbxIcon = createRobuxGlyph();
     rbxIcon.style.marginRight = '3px';
 
     const amountValue = document.createElement('span');
@@ -447,7 +466,7 @@ async function restorePersonalNavbarBalance() {
     const robux = await getPersonalRobuxBalance();
     let restoredAny = false;
 
-    document.querySelectorAll(NAVBAR_SELECTORS).forEach((element) => {
+    getNavbarAmountElements().forEach((element) => {
         delete element.dataset.rovalraNavbarRobuxAmount;
 
         if (element.dataset.rovalraGroupFundsOverride === 'true') {
@@ -505,7 +524,7 @@ async function renderNavbarTotal() {
     const mergedTotal = personalRobux + sumConfiguredGroupFunds(cache);
     const formattedTotal = mergedTotal.toLocaleString();
 
-    document.querySelectorAll(NAVBAR_SELECTORS).forEach((element) => {
+    getNavbarAmountElements().forEach((element) => {
         captureOriginalNavbarAmount(element);
         element.dataset.rovalraNavbarRobuxAmount = String(mergedTotal);
         if (element.dataset.rovalraGroupFundsOverride !== 'true') {
@@ -692,9 +711,7 @@ export function init() {
 
             const renderFunds = (amount) => {
                 amountSpan.innerHTML = '';
-                const rbxIcon = document.createElement('span');
-                rbxIcon.className = 'icon-robux-16x16';
-                rbxIcon.style.verticalAlign = 'text-bottom';
+                const rbxIcon = createRobuxGlyph();
                 rbxIcon.style.marginRight = '3px';
 
                 const value = document.createElement('span');
@@ -710,9 +727,7 @@ export function init() {
                 const label = document.createTextNode(
                     ts('groupFunds.pending') + ' ',
                 );
-                const icon = document.createElement('span');
-                icon.className = 'icon-robux-16x16';
-                icon.style.verticalAlign = 'text-bottom';
+                const icon = createRobuxGlyph();
 
                 icon.style.marginLeft = '3px';
                 icon.style.marginRight = '2px';

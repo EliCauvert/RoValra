@@ -1,7 +1,9 @@
 // Creates roblox overlay
+import { render } from 'preact';
 import { createCloseButton } from './closeButton.js';
 import { createAssetIcon } from './general/toast.js';
 import DOMPurify from 'dompurify';
+import { renderElement } from './react.js';
 
 export function createOverlay({
     title,
@@ -13,17 +15,21 @@ export function createOverlay({
     preventBackdropClose = false,
     onClose,
     overflowVisible = false,
+    showCloseButton = true,
 }) {
     const overlay = document.createElement('div');
     overlay.className = 'rovalra-global-overlay';
 
-    const content = document.createElement('div');
-    content.className = 'rovalra-overlay-content';
-    content.setAttribute('role', 'dialog');
+    const content = renderElement(<div
+        className="rovalra-overlay-content"
+        role="dialog"
+    />);
+
     content.style.maxWidth = maxWidth;
     content.style.maxHeight = maxHeight;
     content.style.display = 'flex';
     content.style.flexDirection = 'column';
+
     if (overflowVisible) {
         content.style.overflow = 'visible';
     } else {
@@ -106,9 +112,11 @@ export function createOverlay({
         }
     };
 
-    const closeButton = createCloseButton({ onClick: close });
-    closeButtonContainer.appendChild(closeButton);
-    content.appendChild(closeButtonContainer);
+    if (showCloseButton) {
+        const closeButton = createCloseButton({ onClick: close });
+        closeButtonContainer.appendChild(closeButton);
+        content.appendChild(closeButtonContainer);
+    }
 
     if (!preventBackdropClose) {
         overlay.addEventListener('click', (e) => {

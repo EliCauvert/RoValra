@@ -21,6 +21,12 @@ $roblox-left-nav-breakpoint: 768px;
         margin-left: $expanded-sidebar-width !important;
         width: calc(100% - $expanded-sidebar-width) !important;
         box-sizing: border-box;
+
+        > #content:has(> #transactions-web-app) {
+            width: calc(100% - 48px);
+            margin-left: auto;
+            margin-right: auto;
+        }
     }
 
     main.container-main[data-rovalra-sidebar-collapse-ready='true'][data-rovalra-sidebar-layout-active='true'][data-rovalra-sidebar-collapsed='true'] {
@@ -33,6 +39,27 @@ $roblox-left-nav-breakpoint: 768px;
         width: calc(100% - $expanded-sidebar-width) !important;
     }
 
+    @each $property in margin-left, padding-left, left {
+        [data-rovalra-sidebar-offset='#{$property}'][data-rovalra-sidebar-collapse-ready='true'][data-rovalra-sidebar-layout-active='true'] {
+            #{$property}: $expanded-sidebar-width !important;
+
+            &[data-rovalra-sidebar-collapsed='true']:not(
+                    [data-rovalra-sidebar-hover-expanded='true']
+                ) {
+                #{$property}: $collapsed-sidebar-width !important;
+            }
+        }
+    }
+
+    [data-rovalra-sidebar-offset-fill='true'][data-rovalra-sidebar-collapse-ready='true'][data-rovalra-sidebar-layout-active='true'] {
+        width: calc(100% - $expanded-sidebar-width) !important;
+
+        &[data-rovalra-sidebar-collapsed='true']:not(
+                [data-rovalra-sidebar-hover-expanded='true']
+            ) {
+            width: calc(100% - $collapsed-sidebar-width) !important;
+        }
+    }
 }
 
 .left-nav[data-rovalra-sidebar-collapsed='true'][data-rovalra-sidebar-layout-active='true']:not(
@@ -82,7 +109,7 @@ $roblox-left-nav-breakpoint: 768px;
     }
 
     /* target SPECIFICALLY le roblox plus promo card widget */
-    li[data-rovalra-sidebar-layout-key="href:/plus:occurrence-2"] > a {
+    li[data-rovalra-sidebar-layout-key='href:/plus:occurrence-2'] > a {
         width: 48px !important;
         min-width: 48px !important;
         height: 48px !important;
@@ -98,12 +125,18 @@ $roblox-left-nav-breakpoint: 768px;
     }
 
     /* hide only the promo text and subscribe link inside the roblox plus promo card */
-    li[data-rovalra-sidebar-layout-key="href:/plus:occurrence-2"] > a > span:nth-child(2),
-    li[data-rovalra-sidebar-layout-key="href:/plus:occurrence-2"] > a > span:nth-child(3) {
+    li[data-rovalra-sidebar-layout-key='href:/plus:occurrence-2']
+        > a
+        > span:nth-child(2),
+    li[data-rovalra-sidebar-layout-key='href:/plus:occurrence-2']
+        > a
+        > span:nth-child(3) {
         display: none !important;
     }
 
-    li[data-rovalra-sidebar-layout-key="href:/plus:occurrence-2"] > a > span:first-child {
+    li[data-rovalra-sidebar-layout-key='href:/plus:occurrence-2']
+        > a
+        > span:first-child {
         margin: 0 !important;
         flex: 0 0 auto !important;
     }
@@ -123,10 +156,38 @@ $roblox-left-nav-breakpoint: 768px;
     display: none;
 }
 
+.left-nav[data-rovalra-sidebar-layout-active='true'] > .flex > div:first-child {
+    position: relative;
+    min-height: 100%;
+}
+
+.left-nav[data-rovalra-sidebar-layout-active='true'] nav li:first-child > a {
+    padding-right: 52px;
+}
+
+.left-nav[data-rovalra-sidebar-collapsed='true'][data-rovalra-sidebar-layout-active='true']:not(
+        [data-rovalra-sidebar-hover-expanded='true']
+    ) {
+    > .flex > div:first-child {
+        padding-top: 64px;
+    }
+
+    .rovalra-sidebar-collapse-button {
+        right: auto;
+        left: 16px;
+    }
+}
+
+.left-nav[data-rovalra-sidebar-collapsed='true']
+    .rovalra-sidebar-collapse-icon
+    svg {
+    transform: scaleX(-1);
+}
+
 .left-nav .rovalra-sidebar-collapse-button {
     position: absolute;
-    left: 10px;
-    bottom: 12px;
+    top: 12px;
+    right: 12px;
     z-index: 2;
     flex: 0 0 40px !important;
     width: 40px !important;
@@ -169,7 +230,9 @@ $roblox-left-nav-breakpoint: 768px;
     }
 }
 
-body:has(.left-nav[data-rovalra-sidebar-collapsed='true'][data-rovalra-sidebar-layout-active='true']) {
+body:has(
+    .left-nav[data-rovalra-sidebar-collapsed='true'][data-rovalra-sidebar-layout-active='true']
+) {
     #group-container > div > div > div.groups-list-sidebar.ng-scope {
         left: $collapsed-sidebar-width !important;
     }

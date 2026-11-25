@@ -30,17 +30,18 @@ const DEFAULT_COLOR = 'currentColor';
 const VALUE_TEXT_SELECTOR =
     '.text-robux, .text-robux-tile, .text-robux-lg, .robux-line-value, #rovalra-stat-robux, #nav-robux-amount, .rovalra-stat-value';
 const USD_TARGET_ICON_SELECTOR =
-    '.icon-robux-16x16, .icon-robux-28x28, .icon-robux-gray-16x16, .icon-robux-tile, .rovalra-robux-icon';
+    '.icon-robux-16x16, .icon-robux-28x28, .icon-robux-gray-16x16, .icon-robux-tile, .rovalra-robux-icon, .rovalra-robux-glyph';
 const USD_TARGET_VALUE_SELECTOR = `${VALUE_TEXT_SELECTOR}, .item-card-price, .store-card-price, .subscription-card-price, .icon-robux-container, .amount.icon-robux-container, .amount-cell, #navbar-robux .nav-robux-icon, #rbx-game-passes .store-card-price, #roseal-game-passes .store-card-price, .gear-passes-container .store-card-price, .game-dev-store .store-card-price`;
 const IGNORE_USD_SELECTOR =
-    '.rovalra-usd-estimate, .tooltip, .modal-dialog, [data-rovalra-skip-usd-estimate], #rovalra-stat-transactions, #rovalra-stat-money-spent, #rovalra-premium-breakdown-container, #rovalra-purchase-breakdown-container, .rovalra-trade-summary, .rovalra-total-value-line, .rovalra-total-demand-line, .rovalra-value-label';
+    '.rovalra-usd-estimate, .tooltip, .rovalra-tooltip, .modal-dialog, [data-rovalra-skip-usd-estimate], #rovalra-stat-transactions, #rovalra-stat-money-spent, #rovalra-premium-breakdown-container, #rovalra-purchase-breakdown-container, .rovalra-trade-summary, .rovalra-total-value-line, .rovalra-total-demand-line, .rovalra-value-label';
 
 const STREAMER_ROBUX_HIDDEN_SELECTOR = '[data-rovalra-robux-hidden="true"]';
 const STREAMER_ROBUX_BALANCE_SELECTOR =
     '#navbar-robux, #nav-robux-amount, #nav-robux-balance';
 const STREAMER_ROBUX_VISIBILITY_EVENT = 'rovalra-streamer-robux-visibility';
 
-const INLINE_FIAT_LOCATIONS = '#navbar-robux, #buy-robux-popover';
+const INLINE_FIAT_LOCATIONS =
+    '#navbar-robux, #buy-robux-popover, .rovalra-group-funds-section';
 const TOOLTIP_FIAT_LOCATIONS = '#rovalra-stat-robux';
 const NAVBAR_BALANCE_UPDATED_EVENT = 'rovalra:navbar-balance-updated';
 
@@ -344,7 +345,7 @@ function getEstimateAnchor(element) {
             if (!(child instanceof HTMLElement)) return false;
             if (
                 child.matches(
-                    '.rovalra-usd-estimate, .icon-robux-16x16, .icon-robux-28x28, .icon-robux-gray-16x16, .icon-robux-tile, .rovalra-robux-icon',
+                    '.rovalra-usd-estimate, .icon-robux-16x16, .icon-robux-28x28, .icon-robux-gray-16x16, .icon-robux-tile, .rovalra-robux-icon, .rovalra-robux-glyph',
                 )
             ) {
                 return false;
@@ -370,7 +371,7 @@ function getEstimateAnchor(element) {
         if (!(child instanceof HTMLElement)) return false;
         if (
             child.matches(
-                '.rovalra-usd-estimate, .icon-robux-16x16, .icon-robux-28x28, .icon-robux-gray-16x16, .icon-robux-tile, .rovalra-robux-icon',
+                '.rovalra-usd-estimate, .icon-robux-16x16, .icon-robux-28x28, .icon-robux-gray-16x16, .icon-robux-tile, .rovalra-robux-icon, .rovalra-robux-glyph',
             )
         ) {
             return false;
@@ -407,7 +408,50 @@ function buildEstimateStyle(fiatSettings) {
     };
 }
 
-async function getFormattedRobuxEstimate(robuxAmount, pricingData) {
+const devexUsdCache = new Map();
+
+function isNavbarRobuxBalance(element) {
+    return (
+        element instanceof HTMLElement &&
+        element.closest('#nav-robux-icon, #navbar-robux .nav-robux-icon') !==
+            null
+    );
+}
+
+function getDevexUsdAmount(robuxAmount, useEstimateApi) {
+    if (!useEstimateApi) return robuxAmount * DEVEX_USD_RATE;
+
+    if (!devexUsdCache.has(robuxAmount)) {
+        devexUsdCache.set(
+            robuxAmount,
+            callRobloxApiJson({
+                subdomain: 'billing',
+                endpoint: `/v1/estimated-fiat?robuxAmount=${robuxAmount}`,
+            })
+                .then((data) => {
+                    const standardUsd = data.usdAmountMicro / 1e6;
+                    if (!data.shouldDisplayEffectiveO18Robux || !robuxAmount)
+                        return standardUsd;
+                    const o18Robux = Math.min(
+                        data.effectiveO18Robux,
+                        robuxAmount,
+                    );
+                    return (
+                        o18Robux * data.effectiveO18ToUsdRate +
+                        (robuxAmount - o18Robux) * (standardUsd / robuxAmount)
+                    );
+                })
+                .catch(() => robuxAmount * DEVEX_USD_RATE),
+        );
+    }
+    return devexUsdCache.get(robuxAmount);
+}
+
+async function getFormattedRobuxEstimate(
+    robuxAmount,
+    pricingData,
+    element = null,
+) {
     const fiatSettings = await getRobuxFiatSettings();
     if (!fiatSettings.robuxFiatEstimatesEnabled) return null;
 
@@ -415,7 +459,10 @@ async function getFormattedRobuxEstimate(robuxAmount, pricingData) {
     const style = buildEstimateStyle(fiatSettings);
 
     if (fiatSettings.robuxFiatRateMode === ROBUX_FIAT_RATE_MODE_DEVEX) {
-        const usdAmount = robuxAmount * DEVEX_USD_RATE;
+        const usdAmount = await getDevexUsdAmount(
+            robuxAmount,
+            isNavbarRobuxBalance(element),
+        );
         const convertedAmount = await convertCurrencyAmount(
             usdAmount,
             'USD',
@@ -628,6 +675,7 @@ async function attachTransactionsCellEstimate(labelCell) {
         const formattedEstimate = await getFormattedRobuxEstimate(
             resolvedAmount,
             pricingData,
+            targetCell,
         );
         if (!formattedEstimate) return;
 
@@ -706,6 +754,7 @@ async function attachGroupRevenueEstimate(amountCell) {
         const formattedEstimate = await getFormattedRobuxEstimate(
             resolvedAmount,
             pricingData,
+            amountCell,
         );
         if (!formattedEstimate) return;
 
@@ -802,6 +851,7 @@ async function attachUsdEstimate(icon) {
         const formattedEstimate = await getFormattedRobuxEstimate(
             resolvedAmount,
             pricingData,
+            element,
         );
         if (!formattedEstimate) return;
 
@@ -836,6 +886,7 @@ async function attachUsdEstimateToValueElement(element) {
         const formattedEstimate = await getFormattedRobuxEstimate(
             resolvedAmount,
             pricingData,
+            amountElement,
         );
         if (!formattedEstimate) return;
 

@@ -45,7 +45,7 @@ $play-btn-bg: var(--rovalra-playbutton-color);
 }
 
 a.game-tile-styles.game-card-link,
-a.game-tile-styles.sdui-game-tile-wrapper {
+.game-tile-styles.sdui-game-tile-wrapper {
     position: relative;
     display: block;
     z-index: 2;
@@ -131,7 +131,7 @@ a.game-tile-styles.sdui-game-tile-wrapper {
     }
 }
 
-a.game-tile-styles.sdui-game-tile-wrapper {
+.game-tile-styles.sdui-game-tile-wrapper {
     display: flex;
 
     &::after {
@@ -139,6 +139,7 @@ a.game-tile-styles.sdui-game-tile-wrapper {
         left: -5px;
         width: calc(100% + 10px);
         height: calc(100% + 10px);
+        z-index: -1;
     }
 
     [data-testid='sdui-tile-footer-content'] {
@@ -150,7 +151,8 @@ a.game-tile-styles.sdui-game-tile-wrapper {
 
     &:hover,
     &.quick-play-hover-active {
-        [data-testid='sdui-tile-main-content'] [data-sdui-text] {
+        [data-testid='sdui-tile-main-content'] [data-sdui-text],
+        .sdui-game-tile-primary [data-sdui-text] {
             -webkit-line-clamp: 1 !important;
         }
 
@@ -162,6 +164,66 @@ a.game-tile-styles.sdui-game-tile-wrapper {
     &.quick-play-hover-superseded [data-testid='sdui-tile-footer-content'] {
         transform: none;
         transition: none;
+    }
+
+    &.quick-play-wide-tile {
+        &:hover,
+        &.quick-play-hover-active {
+            [data-testid='sdui-tile-footer-content'] {
+                transform: none;
+                visibility: hidden;
+            }
+        }
+
+        &.quick-play-hover-superseded [data-testid='sdui-tile-footer-content'] {
+            visibility: visible;
+        }
+    }
+
+    &.quick-play-sdui-featured-tile {
+        [data-testid='sdui-tile-footer-content'] {
+            transform: none !important;
+        }
+
+        .play-button-overlay {
+            justify-content: center;
+        }
+
+        .play-buttons-wrapper,
+        .play-game-button,
+        .private-servers-button,
+        .server-browser-button {
+            height: 100%;
+        }
+
+        .private-servers-button,
+        .server-browser-button {
+            aspect-ratio: 1;
+            width: auto;
+            padding: 0;
+
+            svg {
+                width: 55%;
+                height: 55%;
+            }
+        }
+
+        .play-game-button .icon-common-play {
+            transform: scale(
+                calc(0.8 * var(--rovalra-featured-icon-scale, 1))
+            );
+        }
+
+        &:hover,
+        &.quick-play-hover-active {
+            .quick-play-covered-description {
+                visibility: hidden;
+            }
+        }
+
+        &.quick-play-hover-superseded .quick-play-covered-description {
+            visibility: visible;
+        }
     }
 }
 
@@ -179,7 +241,7 @@ a.game-tile-styles.sdui-game-tile-wrapper {
     max-width: 62px;
     padding: 0 8px 0 6px;
     border-radius: 999px;
-    background: #335fff;
+    background: var(--rovalra-playbutton-color);
     color: #fff;
     font-size: 11px;
     font-weight: 700;

@@ -1,5 +1,6 @@
 import { observeElement } from '../../core/observer.js';
 import { ts } from '../../core/locale/i18n.js';
+import { getCommunityInsertionAnchor } from '../../core/ui/sidebarLink.js';
 
 const COMMUNITY_PATH = '/communities';
 const TRANSACTIONS_PATH = '/transactions';
@@ -9,6 +10,7 @@ const SIDEBAR_COMMUNITY_SELECTOR = [
     '#left-navigation-container a[href*="/communities"]',
     '#navigation a[href*="/communities"]',
     '.navigation a[href*="/communities"]',
+    '.left-nav nav a[href*="/communities"]',
 ].join(', ');
 
 let lastObservedPath = window.location.pathname;
@@ -267,7 +269,10 @@ function insertTransactionsLink(communityLink, label) {
     );
     if (!communityItem || !transactionsItem) return;
 
-    communityItem.insertAdjacentElement('afterend', transactionsItem);
+    getCommunityInsertionAnchor(communityItem).insertAdjacentElement(
+        'afterend',
+        transactionsItem,
+    );
     updateTransactionsActiveState(sidebar);
     attachSidebarStateSync(sidebar);
 }
