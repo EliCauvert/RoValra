@@ -6,7 +6,8 @@ import { t } from './core/locale/i18n.js';
 // Site wide
 import { init as initOnboarding } from './features/onboarding/onboarding.js';
 import { init as initUpdateChangelog } from './features/onboarding/updateChangelog.js';
-import { init as initWhatAmIJoining } from './features/games/revertlogo.js';
+import { init as initWhatAmIJoining } from './features/games/gameLaunch/whatAmIJoining.js';
+import { init as initRevertLogo } from './features/games/gameLaunch/revertLogo.js';
 import { init as initEasterEggLinks } from './features/sitewide/easterEggs/links.js';
 import { init as initCssFixes } from './features/sitewide/cssfixes.js';
 import { init as initServerListener } from './features/games/serverlistener.js';
@@ -217,7 +218,6 @@ import { init as initCurrencyTransfer } from './features/profile/currencytransfe
 import { init as initGroupFilters } from './features/profile/groupFilters.js';
 import { init as initUsernameColor } from './features/profile/header/usernameColor.js';
 import { init as initDisplayNameGradient } from './features/profile/header/displayNameGradient.js';
-import { init as initChatEligibilityTooltip } from './features/profile/header/chatEligibilityTooltip.js';
 import { init as initProfileCustomization } from './features/profile/profileCustomization.js';
 import { init as initProfileEditFeatures } from './core/profile/profileEdit.js';
 import './features/profile/profileBadges.js';
@@ -239,10 +239,12 @@ import { init as initUnderratedGamesHome } from './features/home/underratedGames
 import { init as initGameBookmarks } from './features/games/gameBookmarks.js';
 import { init as initBookmarkedGames } from './features/home/bookmarkedGames.js';
 import { init as initPlaytime } from './features/home/playtime.js';
+import { init as initSduiExtraSorts } from './features/home/sduiExtraSorts.js';
 import { init as initHideAddFriendsButton } from './features/home/hideAddFriendsButton.js';
 import { init as initFriendsCarouselRedesign } from './features/home/friendsCarouselRedesign.js';
 import { init as initHomeGreeting } from './features/home/homeGreeting.js';
 import { init as initPinnedFriends } from './features/sitewide/pinnedFriends.js';
+import { loadIconFontsForStrictCsp } from './core/ui/iconFonts.js';
 // create
 import { init as initCreateDownload } from './features/create.roblox.com/download.js';
 import { init as initOffSaleCreatePage } from './features/create.roblox.com/offSaleCreatePage.js';
@@ -271,6 +273,7 @@ const featureRoutes = [
             initEasterEggLinks,
             initCssFixes,
             initWhatAmIJoining,
+            initRevertLogo,
             initServerListener,
             initOnboarding,
             initUpdateChangelog,
@@ -528,7 +531,6 @@ const featureRoutes = [
             initCurrencyTransfer,
             initGroupFilters,
             initAvatarDownload,
-            initChatEligibilityTooltip,
             initProfileCustomization,
             initSocialLinks,
             initSendRobuxProfileButton,
@@ -599,6 +601,7 @@ const featureRoutes = [
         paths: ['/home'],
         features: [
             initHomeLayout,
+            initSduiExtraSorts,
             initBookmarkedGames,
             initPlaytime,
             initUnderratedGamesHome,
@@ -784,6 +787,8 @@ async function initializePage() {
                                 settings.disableThumbnailBackground === true,
                             disableThumbnailProfileFrame:
                                 settings.disableThumbnailProfileFrame === true,
+                            deeplinkLaunchOverrideEnabled:
+                                settings.deeplinkLaunchOverrideEnabled === true,
                         },
                     }),
                 );
@@ -857,6 +862,8 @@ async function initializePage() {
             childList: true,
         });
     }
+
+    loadIconFontsForStrictCsp();
 
     if (document.body) {
         startFeatures().catch((error) =>
